@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bot RAG Webchat</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
+    input { width: 60%; padding: 0.5em; margin-right: 0.5em; }
+    button { padding: 0.5em 1em; }
+    pre { margin-top: 1em; background: #fff; padding: 1em; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Chat dengan Bot RAG</h2>
+  <input id="q" placeholder="Tulis pertanyaan kamu di sini..." />
+  <button onclick="send()">Kirim</button>
+  <pre id="out"></pre>
+
+  <script>
+    async function send() {
+      const q = document.getElementById("q").value.trim();
+      if (!q) return alert("Pertanyaan tidak boleh kosong!");
+
+      try {
+        const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ context: "", question: q })
+        });
+
+        if (!res.ok) {
+          throw new Error(`Gagal mengirim: ${res.status}`);
+        }
+
+        const data = await res.json();
+        document.getElementById("out").innerText = data.answer || "Bot tidak menjawab.";
+      } catch (err) {
+        document.getElementById("out").innerText = `Terjadi kesalahan: ${err.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
