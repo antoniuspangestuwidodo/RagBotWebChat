@@ -56,11 +56,11 @@
 </style>
 </head>
 <body>
-  <h2>RagBot Chatroom</h2>
+  <h2>Rag Bot Chatroom</h2>
   <div id="chat"></div>
   <div id="inputArea">
-    <input id="q" placeholder="Tulis pertanyaan..." autocomplete="off" />
-    <button onclick="send()">Kirim</button>
+    <input id="q" placeholder="Type your question here..." autocomplete="off" />
+    <button onclick="send()">Send</button>
     <button onclick="clearChat()">Clear Chat</button>
   </div>
 
@@ -73,7 +73,7 @@
     msgDiv.classList.add("message", sender);
     msgDiv.innerText = text;
     chatDiv.appendChild(msgDiv);
-    chatDiv.scrollTop = chatDiv.scrollHeight; // auto scroll ke bawah
+    chatDiv.scrollTop = chatDiv.scrollHeight; // auto scroll down
   }
 
   async function send() {
@@ -89,7 +89,7 @@
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      appendMessage(data.answer || "Tidak ada jawaban.", "bot");
+      appendMessage(data.answer || "No answer founded.", "bot");
     } catch (err) {
       appendMessage("Error: " + err.message, "bot");
     }
@@ -99,7 +99,7 @@
     chatDiv.innerHTML = "";
   }
 
-  // Optional: Kirim juga jika user tekan Enter
+  // Optional: Send if user press Enter
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") send();
   });
