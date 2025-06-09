@@ -104,6 +104,18 @@
         border-radius: 0;
       }
     }
+
+    @keyframes blink {
+      0%   { opacity: 0.2; }
+      20%  { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+
+    #typing-indicator::after {
+      content: " .";
+      animation: blink 1s infinite steps(1, start);
+    }
+
   </style>
 </head>
 <body>
@@ -119,6 +131,7 @@
   <script>
     const userId = "user_" + Math.floor(Math.random() * 100000);
     const messages = document.getElementById("messages");
+    let typingIndicator;
 
     function addMessage(text, sender) {
       const div = document.createElement("div");
@@ -126,6 +139,21 @@
       div.textContent = text;
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
+    }
+
+    function showTyping() {
+      typingIndicator = document.createElement("div");
+      typingIndicator.className = "message bot";
+      typingIndicator.textContent = "Typing...";
+      typingIndicator.id = "typing-indicator";
+      messages.appendChild(typingIndicator);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function removeTyping() {
+      if (typingIndicator && typingIndicator.parentNode) {
+        typingIndicator.parentNode.removeChild(typingIndicator);
+      }
     }
 
     async function send() {
@@ -136,6 +164,8 @@
       addMessage(question, "user");
       input.value = "";
 
+      showTyping(); // ← show Typing... animation
+
       try {
         const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
           method: "POST",
@@ -144,8 +174,10 @@
         });
 
         const data = await res.json();
+        removeTyping(); // ← remove typing before showing the answer
         addMessage(data.answer, "bot");
       } catch (err) {
+        removeTyping();
         addMessage("Error contacting the server.", "bot");
       }
     }
@@ -154,10 +186,10 @@
       messages.innerHTML = "";
     }
 
-    // Optional: press Enter to send
     document.getElementById("question").addEventListener("keypress", function (e) {
       if (e.key === "Enter") send();
     });
   </script>
+
 </body>
 </html>
