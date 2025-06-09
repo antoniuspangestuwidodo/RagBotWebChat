@@ -35,7 +35,7 @@
       appendMessage("user", question);
       document.getElementById("question").value = "";
 
-      const res = await fetch("https://your-railway-app.up.railway.app/api/webchat", {
+      const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, question })
