@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>RAG Chat</title>
+  <meta charset="UTF-8">
+  <title>RAG WebChat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     * {
       box-sizing: border-box;
@@ -11,8 +11,7 @@
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f6f8;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -20,68 +19,72 @@
 
     #chat-container {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      max-width: 800px;
-      margin: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      overflow: hidden;
-      background-color: white;
-    }
-
-    #messages {
-      flex: 1;
-      padding: 15px;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      padding: 1rem;
+      background-color: #f5f5f5;
     }
 
     .message {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
       max-width: 80%;
-      padding: 10px 15px;
-      border-radius: 15px;
-      line-height: 1.4;
       word-wrap: break-word;
     }
 
     .user {
+      background-color: #d0ebff;
       align-self: flex-end;
-      background-color: #007bff;
-      color: white;
-      border-bottom-right-radius: 0;
+      margin-left: auto;
     }
 
     .bot {
+      background-color: #e2e2e2;
       align-self: flex-start;
-      background-color: #e4e6eb;
-      color: #111;
-      border-bottom-left-radius: 0;
+      margin-right: auto;
+    }
+
+    #typing-indicator {
+      font-style: italic;
+      color: gray;
+      margin-bottom: 0.5rem;
+    }
+
+    .dots::after {
+      content: '';
+      animation: dots 1.5s steps(3, end) infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
     }
 
     #input-area {
       display: flex;
-      padding: 10px;
+      padding: 0.5rem;
       border-top: 1px solid #ccc;
-      background: #f8f9fa;
+      background: #fff;
+      position: sticky;
+      bottom: 0;
     }
 
-    #question {
+    #userName, #userInput {
       flex: 1;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 0.5rem;
+      margin-right: 0.5rem;
       border: 1px solid #ccc;
-      margin-right: 10px;
+      border-radius: 8px;
     }
 
     button {
-      padding: 10px 15px;
+      padding: 0.5rem 1rem;
       border: none;
-      border-radius: 8px;
       background-color: #007bff;
       color: white;
+      border-radius: 8px;
       cursor: pointer;
     }
 
@@ -89,107 +92,78 @@
       background-color: #0056b3;
     }
 
-    #clearBtn {
-      margin-left: 5px;
-      background-color: #6c757d;
-    }
-
-    #clearBtn:hover {
-      background-color: #5a6268;
-    }
-
     @media (max-width: 600px) {
-      #chat-container {
-        border: none;
-        border-radius: 0;
+      #input-area {
+        flex-direction: column;
       }
-    }
 
-    @keyframes dots {
-      0%   { content: ""; }
-      25%  { content: "."; }
-      50%  { content: ".."; }
-      75%  { content: "..."; }
-      100% { content: ""; }
-    }
+      #userName, #userInput {
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+      }
 
-    .dots::after {
-      content: "";
-      animation: dots 1.2s steps(4, end) infinite;
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="chat-container">
-    <div id="messages"></div>
-    <div id="input-area">
-      <input id="question" type="text" placeholder="Write your question..." />
-      <button onclick="send()">Send</button>
-      <button id="clearBtn" onclick="clearChat()">Clear</button>
-    </div>
+  <div id="chat-container"></div>
+
+  <div id="input-area">
+    <input type="text" id="userName" placeholder="Your name (optional)" />
+    <input type="text" id="userInput" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
   </div>
 
   <script>
-    const userId = "user_" + Math.floor(Math.random() * 100000);
-    const messages = document.getElementById("messages");
-    let typingIndicator;
+    const chatContainer = document.getElementById('chat-container');
 
-    function addMessage(text, sender) {
-      const div = document.createElement("div");
+    function appendMessage(text, sender) {
+      const div = document.createElement('div');
       div.className = `message ${sender}`;
-      div.textContent = text;
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
+      div.innerText = text;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     function showTyping() {
-      typingIndicator = document.createElement("div");
-      typingIndicator.className = "message bot";
-      typingIndicator.innerHTML = 'Typing<span class="dots"></span>';
-      typingIndicator.id = "typing-indicator";
-      messages.appendChild(typingIndicator);
-      messages.scrollTop = messages.scrollHeight;
+      const typing = document.createElement('div');
+      typing.id = 'typing-indicator';
+      typing.className = 'message bot';
+      typing.innerHTML = 'Typing<span class="dots"></span>';
+      chatContainer.appendChild(typing);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     function removeTyping() {
-      if (typingIndicator && typingIndicator.parentNode) {
-        typingIndicator.parentNode.removeChild(typingIndicator);
-      }
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
     }
 
-    async function send() {
-      const input = document.getElementById("question");
-      const question = input.value.trim();
-      if (!question) return;
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const name = document.getElementById('userName');
+      const message = input.value.trim();
+      const userName = name.value.trim();
 
-      addMessage(question, "user");
-      input.value = "";
+      if (!message) return;
 
-      showTyping(); // ← show Typing... animation
+      appendMessage(message, 'user');
+      input.value = '';
+      showTyping();
 
-      try {
-        const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, question })
-        });
+      const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: message, userId: userName || "anonymous" })
+      });
 
-        const data = await res.json();
-        removeTyping(); // ← remove typing before showing the answer
-        addMessage(data.answer, "bot");
-      } catch (err) {
-        removeTyping();
-        addMessage("Error contacting the server.", "bot");
-      }
+      const data = await res.json();
+      removeTyping();
+      appendMessage(data.answer, 'bot');
     }
-
-    function clearChat() {
-      messages.innerHTML = "";
-    }
-
-    document.getElementById("question").addEventListener("keypress", function (e) {
-      if (e.key === "Enter") send();
-    });
   </script>
 </body>
 </html>
