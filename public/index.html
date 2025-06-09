@@ -1,82 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>RAG Web Chat</title>
+  <title>RAG Chat</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
-    .msg { margin: 5px 0; }
+    #chat { border: 1px solid #ccc; padding: 10px; max-width: 600px; height: 400px; overflow-y: scroll; }
+    .msg { margin-bottom: 10px; }
     .user { font-weight: bold; color: blue; }
     .bot { font-weight: bold; color: green; }
-    #controls { margin-top: 10px; }
   </style>
 </head>
 <body>
-
-  <h2>Chat with RAG Bot</h2>
-
-  <div>
-    <input id="name" placeholder="Enter your name" />
-    <button onclick="startChat()">Start</button>
-  </div>
-
   <div id="chat"></div>
-
-  <div id="controls" style="display:none;">
-    <input id="q" placeholder="Your question" />
-    <button onclick="send()">Send</button>
-    <button onclick="clearChat()">Clear</button>
-  </div>
+  <input id="question" placeholder="Tulis pertanyaan..." style="width: 70%;" />
+  <button onclick="send()">Kirim</button>
+  <button onclick="clearChat()">Clear</button>
 
   <script>
-    let userId = "";
-    let userName = "";
+    const userId = "user_" + Math.floor(Math.random() * 100000);
+    const chatBox = document.getElementById("chat");
 
-    function startChat() {
-      userName = document.getElementById("name").value.trim();
-      if (!userName) {
-        alert("Please enter your name.");
-        return;
-      }
-
-      // Generate simple user ID
-      userId = "user-" + Math.random().toString(36).substring(2, 10);
-      document.getElementById("controls").style.display = "block";
-      addMessage("bot", `Hello ${userName}, feel free to ask anything based on the document!`);
-    }
-
-    function addMessage(sender, text) {
-      const chat = document.getElementById("chat");
+    function appendMessage(sender, message) {
       const div = document.createElement("div");
       div.className = "msg";
-      div.innerHTML = `<span class="${sender}">${sender === "user" ? userName : "Bot"}:</span> ${text}`;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+      div.innerHTML = `<span class="${sender}">${sender}:</span> ${message}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function send() {
-      const q = document.getElementById("q").value.trim();
-      if (!q) return;
+      const question = document.getElementById("question").value;
+      if (!question) return;
 
-      addMessage("user", q);
-      document.getElementById("q").value = "";
+      appendMessage("user", question);
+      document.getElementById("question").value = "";
 
-      const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
+      const res = await fetch("https://your-railway-app.up.railway.app/api/webchat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: q,
-          userId: userId,
-          userName: userName
-        })
+        body: JSON.stringify({ userId, question })
       });
 
       const data = await res.json();
-      addMessage("bot", data.answer);
+      appendMessage("bot", data.answer);
     }
 
     function clearChat() {
-      document.getElementById("chat").innerHTML = "";
+      chatBox.innerHTML = "";
     }
   </script>
 </body>
