@@ -164,6 +164,13 @@
       removeTyping();
       appendMessage(data.answer, 'bot');
     }
+
+    document.getElementById("userInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
   </script>
 </body>
 </html>
