@@ -105,17 +105,18 @@
       }
     }
 
-    @keyframes blink {
-      0%   { opacity: 0.2; }
-      20%  { opacity: 1; }
-      100% { opacity: 0.2; }
+    @keyframes dots {
+      0%   { content: ""; }
+      25%  { content: "."; }
+      50%  { content: ".."; }
+      75%  { content: "..."; }
+      100% { content: ""; }
     }
 
-    #typing-indicator::after {
-      content: " .";
-      animation: blink 1s infinite steps(1, start);
+    .dots::after {
+      content: "";
+      animation: dots 1.2s steps(4, end) infinite;
     }
-
   </style>
 </head>
 <body>
@@ -144,7 +145,7 @@
     function showTyping() {
       typingIndicator = document.createElement("div");
       typingIndicator.className = "message bot";
-      typingIndicator.textContent = "Typing...";
+      typingIndicator.innerHTML = 'Typing<span class="dots"></span>';
       typingIndicator.id = "typing-indicator";
       messages.appendChild(typingIndicator);
       messages.scrollTop = messages.scrollHeight;
@@ -190,6 +191,5 @@
       if (e.key === "Enter") send();
     });
   </script>
-
 </body>
 </html>
