@@ -69,12 +69,12 @@
       background: #fff;
       position: sticky;
       bottom: 0;
+      gap: 0.5rem;
     }
 
-    #userName, #userInput {
+    #userInput {
       flex: 1;
       padding: 0.5rem;
-      margin-right: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 8px;
     }
@@ -97,8 +97,7 @@
         flex-direction: column;
       }
 
-      #userName, #userInput {
-        margin-bottom: 0.5rem;
+      #userInput {
         margin-right: 0;
       }
 
@@ -112,9 +111,9 @@
   <div id="chat-container"></div>
 
   <div id="input-area">
-    <input type="text" id="userName" placeholder="Your name (optional)" />
     <input type="text" id="userInput" placeholder="Type your message..." />
     <button onclick="sendMessage()">Send</button>
+    <button onclick="clearChat()">Clear</button>
   </div>
 
   <script>
@@ -142,12 +141,13 @@
       if (typing) typing.remove();
     }
 
+    function clearChat() {
+      chatContainer.innerHTML = '';
+    }
+
     async function sendMessage() {
       const input = document.getElementById('userInput');
-      const name = document.getElementById('userName');
       const message = input.value.trim();
-      const userName = name.value.trim();
-
       if (!message) return;
 
       appendMessage(message, 'user');
@@ -157,7 +157,7 @@
       const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: message, userId: userName || "anonymous" })
+        body: JSON.stringify({ question: message, userId: "anonymous" })
       });
 
       const data = await res.json();
