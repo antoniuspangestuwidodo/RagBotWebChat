@@ -1,53 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RAG Chat</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; max-width: 600px; height: 400px; overflow-y: scroll; }
-    .msg { margin-bottom: 10px; }
-    .user { font-weight: bold; color: blue; }
-    .bot { font-weight: bold; color: green; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 800px;
+      margin: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: white;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #007bff;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #e4e6eb;
+      color: #111;
+      border-bottom-left-radius: 0;
+    }
+
+    #input-area {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background: #f8f9fa;
+    }
+
+    #question {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #clearBtn {
+      margin-left: 5px;
+      background-color: #6c757d;
+    }
+
+    #clearBtn:hover {
+      background-color: #5a6268;
+    }
+
+    @media (max-width: 600px) {
+      #chat-container {
+        border: none;
+        border-radius: 0;
+      }
+    }
   </style>
 </head>
 <body>
-  <div id="chat"></div>
-  <input id="question" placeholder="Type your question..." style="width: 70%;" />
-  <button onclick="send()">Send</button>
-  <button onclick="clearChat()">Clear</button>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-area">
+      <input id="question" type="text" placeholder="Tulis pertanyaan atau nama kamu..." />
+      <button onclick="send()">Kirim</button>
+      <button id="clearBtn" onclick="clearChat()">Clear</button>
+    </div>
+  </div>
 
   <script>
     const userId = "user_" + Math.floor(Math.random() * 100000);
-    const chatBox = document.getElementById("chat");
+    const messages = document.getElementById("messages");
 
-    function appendMessage(sender, message) {
+    function addMessage(text, sender) {
       const div = document.createElement("div");
-      div.className = "msg";
-      div.innerHTML = `<span class="${sender}">${sender}:</span> ${message}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      div.className = `message ${sender}`;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
     }
 
     async function send() {
-      const question = document.getElementById("question").value;
+      const input = document.getElementById("question");
+      const question = input.value.trim();
       if (!question) return;
 
-      appendMessage("user", question);
-      document.getElementById("question").value = "";
+      addMessage(question, "user");
+      input.value = "";
 
-      const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, question })
-      });
+      try {
+        const res = await fetch("https://ragteamscloudstorage-production.up.railway.app/api/webchat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, question })
+        });
 
-      const data = await res.json();
-      appendMessage("bot", data.answer);
+        const data = await res.json();
+        addMessage(data.answer, "bot");
+      } catch (err) {
+        addMessage("Error contacting the server.", "bot");
+      }
     }
 
     function clearChat() {
-      chatBox.innerHTML = "";
+      messages.innerHTML = "";
     }
+
+    // Optional: press Enter to send
+    document.getElementById("question").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") send();
+    });
   </script>
 </body>
 </html>
